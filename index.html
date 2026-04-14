@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Reporte turno Capataz</title>
+  <meta name="theme-color" content="#0a1e3d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Reporte turno Capataz" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='28' fill='%23123c7b'/%3E%3Ctext x='90' y='112' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='68' fill='white'%3EXM%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <div class="autosave-indicator" id="autosaveIndicator">Guardado auto</div>
+  <div class="mobile-header">
+    <button class="hamburger" id="menuBtn" type="button" aria-label="Menú">&#9776;</button>
+    <h2>Reporte turno Capataz</h2>
+    <button class="hamburger" id="mobileThemeBtn" type="button" aria-label="Tema">&#9789;</button>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="logo.jpg" alt="Xtreme Mining" class="brand-logo" />
+        <p class="brand-subtitle">Reporte turno Capataz</p>
+      </div>
+
+      <div class="tab-selector">
+        <button type="button" class="active" data-tab="tab1" onclick="switchTab('tab1')">Operaciones</button>
+        <button type="button" data-tab="tab2" onclick="switchTab('tab2')">Materiales en postura</button>
+        <button type="button" data-tab="tab3" onclick="switchTab('tab3')">KPI</button>
+      </div>
+
+      <nav class="nav" id="sideNav">
+        <a href="#general" data-tab-link="tab1">General</a>
+        <a href="#art" data-tab-link="tab1">ART</a>
+        <a href="#equipos" data-tab-link="tab1">Equipos</a>
+        <a href="#actividades" data-tab-link="tab1">Actividades</a>
+        <a href="#procedimientos" data-tab-link="tab1">Procedimientos</a>
+        <a href="#materiales" data-tab-link="tab2">Estatus de materiales</a>
+        <a href="#herramientas" data-tab-link="tab2">Herramientas</a>
+        <a href="#sitio" data-tab-link="tab2">Fotos de Acopio de Materiales</a>
+        <a href="#kpi" data-tab-link="tab3">KPI</a>
+        <a href="#dashboard" data-tab-link="tab3">Dashboard</a>
+        <a href="#metas" data-tab-link="tab3">Metas</a>
+        <a href="#resumen" data-tab-link="tab3">Resumen</a>
+        <a href="#validacion" data-tab-link="tab3">Validación</a>
+        <a href="#cierre" data-tab-link="tab3">Cierre</a>
+        <a href="#historial" data-tab-link="tab3">Historial</a>
+        <a href="#consolidado" data-tab-link="tab3">Consolidado</a>
+      </nav>
+
+      <button class="theme-toggle" type="button" id="themeToggle"><span class="theme-toggle-icon" id="themeIcon">&#9789;</span><span id="themeLabel">Modo oscuro</span></button>
+
+      <div class="status-card">
+        <h3>Estado</h3>
+        <div class="status-row"><span>Conectividad</span><strong id="networkStatus">...</strong></div>
+        <div class="status-row"><span>Google Sheets</span><strong id="sheetsStatus">No configurado</strong></div>
+        <div class="status-row"><span>Guardado</span><strong id="saveStatus">Sin cambios</strong></div>
+        <div class="status-row"><span>Tamaño</span><strong id="sizeStatus">0 MB</strong></div>
+        <div class="status-row"><span>Último sync</span><strong id="syncStatus">No realizado</strong></div>
+      </div>
+
+      <div class="actions-stack">
+        <button class="btn btn-primary" type="button" id="saveBtn">Guardar offline</button>
+        <button class="btn btn-secondary" type="button" id="syncBtn">Enviar a Google Sheets</button>
+        <button class="btn btn-secondary" type="button" id="pdfBtn">Exportar PDF</button>
+        <button class="btn btn-outline" type="button" id="exportBtn">Exportar JSON</button>
+        <button class="btn btn-outline" type="button" id="exportFlatBtn">CSV Power BI</button>
+        <label class="btn btn-outline import-btn">Importar JSON<input type="file" id="importFile" accept=".json" hidden /></label>
+        <button class="btn btn-danger" type="button" id="clearBtn">Limpiar formulario</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="hero"><div><h2>Informe y control integral del turno</h2><p class="hero-text">Autor: Larry Cereceda | Jefe Operaciones</p><p class="folio-line">Folio: <strong id="folioDisplay">XM-0000</strong></p></div></header>
+
+      <!-- === MAIN TAB BAR === -->
+      <div class="main-tabs" id="mainTabs">
+        <button class="main-tab active" type="button" data-tab="tab1" onclick="switchTab('tab1')">Operaciones</button>
+        <button class="main-tab" type="button" data-tab="tab2" onclick="switchTab('tab2')">Materiales en postura</button>
+        <button class="main-tab" type="button" data-tab="tab3" onclick="switchTab('tab3')">KPI / Dashboard</button>
+      </div>
+
+      <form id="reportForm" onsubmit="return false">
+
+        <!-- ===== HOJA 1: OPERACIONES ===== -->
+        <div class="tab-page active" id="tab1">
+
+          <section class="panel" id="general">
+            <div class="panel-header" data-collapse="general"><h3>Información general</h3><p>Base del informe operacional</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <button class="btn btn-clear-section" type="button" data-clear-section="general">Limpiar pestaña</button>
+              <div class="grid grid-4">
+                <label><span>Fecha</span><input type="date" name="fecha" required /></label>
+                <label><span>Turno</span><select name="turno" id="turnoSelect" required><option value="">Seleccione</option></select></label>
+                <label><span>Grupo</span><select name="grupo" id="grupoSelect"><option value="">Seleccione</option></select></label>
+                <label><span>Mina</span><select name="mina" id="minaSelect" required><option value="">Seleccione</option></select></label>
+                <label><span>Capataz</span><select name="capataz" id="capatazSelect" required><option value="">Seleccione</option></select></label>
+                <label><span>Jefe de Turno</span><select name="jefeTurno" id="jefeTurnoSelect"><option value="">Seleccione</option></select></label>
+                <label><span>Jefe de Terreno</span><select name="jefeTerreno" id="jefeTerrenoSelect"><option value="">Seleccione</option></select></label>
+                <label><span>Jefe de Operaciones</span><select name="jefeOperaciones" id="jefeOperacionesSelect"><option value="">Seleccione</option></select></label>
+                <label><span>Dotación</span><input type="number" min="0" name="dotacion" /></label>
+                <label><span>Postura</span><input type="text" name="postura" /></label>
+                <label><span>Postura alternativa</span><input type="text" name="posturaAlternativa" /></label>
+                <label><span>Inicio primera actividad</span><input type="time" name="inicioPrimeraActividad" /></label>
+                <label><span>Ingreso a postura</span><input type="time" name="ingresoPostura" /></label>
+                <label><span>Salida de postura</span><input type="time" name="salidaPostura" /></label>
+                <label><span>Sismicidad</span><select name="sismicidad"><option value="">Seleccione</option><option>Sin novedad</option><option>Baja</option><option>Alta</option></select></label>
+                <label><span>CNC</span><input type="text" name="cnc" /></label>
+              </div>
+              <div class="grid grid-2 mt-16">
+                <label><span>Interferencias internas</span><textarea name="interferenciasInternas" rows="3"></textarea></label>
+                <label><span>Interferencias externas</span><textarea name="interferenciasExternas" rows="3"></textarea></label>
+              </div>
+              <div class="grid grid-4 mt-16">
+                <label><span>Charla seguridad</span><select name="charlaRealizada"><option value="">Seleccione</option><option>SI</option><option>NO</option></select></label>
+                <label><span>Tiempo charla</span><input type="text" name="charlaTiempo" placeholder="Ej: 15 min" /></label>
+                <label class="col-span-2"><span>Tema charla</span><input type="text" name="charlaTema" /></label>
+              </div>
+              <label class="mt-16"><span>Observaciones generales</span><textarea name="observacionesGenerales" rows="4"></textarea></label>
+            </div>
+          </section>
+
+          <section class="panel" id="art">
+            <div class="panel-header" data-collapse="art"><h3>Revisión ART</h3><p>Control con evidencia</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div id="artContainer" class="stack"></div>
+            </div>
+          </section>
+
+          <section class="panel" id="procedimientos">
+            <div class="panel-header" data-collapse="procedimientos"><h3>Procedimientos utilizados</h3><p>Registro con evidencia fotográfica</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div id="procedimientosContainer" class="stack"></div>
+            </div>
+          </section>
+
+          <section class="panel" id="equipos">
+            <div class="panel-header" data-collapse="equipos"><h3>Resumen de equipos</h3><p>Estado, operador y evidencia</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div class="section-subtitle">Jaulas</div>
+              <div id="jaulasContainer" class="stack"></div>
+              <div class="section-subtitle mt-16">Plataformas</div>
+              <div id="plataformasContainer" class="stack"></div>
+              <div class="section-subtitle mt-16">Porta Marcos</div>
+              <div id="portaMarcosContainer" class="stack"></div>
+              <div class="section-subtitle mt-16">Otros equipos</div>
+              <div id="othersContainer" class="stack"></div>
+              <div class="section-subtitle mt-16">Radio Handy</div>
+              <div id="radiosContainer" class="stack"></div>
+            </div>
+          </section>
+
+          <section class="panel" id="actividades">
+            <div class="panel-header" data-collapse="actividades"><h3>Actividades realizadas</h3><p>Registro con producción</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div id="activitiesContainer" class="stack"></div>
+            </div>
+          </section>
+
+          <section class="panel" id="pendientes">
+            <div class="panel-header" data-collapse="pendientes"><h3>Pendientes próximo turno</h3><p>Con personal y foto</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div id="pendingContainer" class="stack"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ===== HOJA 2: LOGÍSTICA ===== -->
+        <div class="tab-page" id="tab2">
+          <section class="panel" id="materiales">
+            <div class="panel-header" data-collapse="materiales"><h3>Estatus de materiales</h3><p>Control operacional</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div id="materialsContainer" class="stack"></div>
+            </div>
+          </section>
+          <section class="panel" id="herramientas">
+            <div class="panel-header" data-collapse="herramientas"><h3>Herramientas en el sector</h3><p>Código, estado y foto</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div id="toolsContainer" class="stack"></div>
+            </div>
+          </section>
+          <section class="panel" id="sitio">
+            <div class="panel-header" data-collapse="sitio"><h3>Fotos de Acopio de Materiales</h3><p>Registro fotográfico del acopio en postura</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div id="siteEvidenceContainer" class="stack"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ===== HOJA 3: KPI / DASHBOARD ===== -->
+        <div class="tab-page" id="tab3">
+          <section class="panel" id="kpi">
+            <div class="panel-header" data-collapse="kpi"><h3>KPI del turno</h3><p>Control gerencial</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div class="kpi-grid">
+                <div class="kpi-card" id="cardEquiposOperativos"><span class="kpi-label">Equipos operativos</span><strong class="kpi-value" id="kpiEquiposOperativos">0</strong></div>
+                <div class="kpi-card" id="cardEquiposFS"><span class="kpi-label">Equipos F/S</span><strong class="kpi-value" id="kpiEquiposFS">0</strong></div>
+                <div class="kpi-card" id="cardART"><span class="kpi-label">ART registrados</span><strong class="kpi-value" id="kpiART">0</strong></div>
+                <div class="kpi-card" id="cardRadios"><span class="kpi-label">Radios entregadas</span><strong class="kpi-value" id="kpiRadios">0</strong></div>
+                <div class="kpi-card" id="cardM3Scoop"><span class="kpi-label">m3 removidos</span><strong class="kpi-value" id="kpiM3Scoop">0</strong></div>
+                <div class="kpi-card" id="cardM2Malla"><span class="kpi-label">m2 malla</span><strong class="kpi-value" id="kpiM2Malla">0</strong></div>
+                <div class="kpi-card" id="cardMetrosJumbo"><span class="kpi-label">Metros perforados</span><strong class="kpi-value" id="kpiMetrosJumbo">0</strong></div>
+                <div class="kpi-card" id="cardPernosExpansor"><span class="kpi-label">Pernos expansor</span><strong class="kpi-value" id="kpiPernosExpansor">0</strong></div>
+                <div class="kpi-card" id="cardPernosLechados"><span class="kpi-label">Pernos lechados</span><strong class="kpi-value" id="kpiPernosLechados">0</strong></div>
+                <div class="kpi-card" id="cardCablesLechados"><span class="kpi-label">Cables lechados</span><strong class="kpi-value" id="kpiCablesLechados">0</strong></div>
+                <div class="kpi-card" id="cardM2Hilteo"><span class="kpi-label">m2 hilteo</span><strong class="kpi-value" id="kpiM2Hilteo">0</strong></div>
+                <div class="kpi-card" id="cardM2Demolidos"><span class="kpi-label">m2 demolidos</span><strong class="kpi-value" id="kpiM2Demolidos">0</strong></div>
+                <div class="kpi-card" id="cardM3Proyectados"><span class="kpi-label">m3 proyectados</span><strong class="kpi-value" id="kpiM3Proyectados">0</strong></div>
+                <div class="kpi-card" id="cardM3Bombeados"><span class="kpi-label">m3 bombeados</span><strong class="kpi-value" id="kpiM3Bombeados">0</strong></div>
+              </div>
+            </div>
+          </section>
+          <section class="panel" id="dashboard">
+            <div class="panel-header" data-collapse="dashboard"><h3>Dashboard ejecutivo</h3><p>Resultado y alertas</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div class="dashboard-grid">
+                <div class="dashboard-card"><span class="dashboard-label">Cumplimiento producción</span><strong id="dashCumplimiento">0%</strong><small id="dashDetalleProduccion">Sin datos</small></div>
+                <div class="dashboard-card"><span class="dashboard-label">Disponibilidad equipos</span><strong id="dashDisponibilidad">0%</strong><small id="dashDetalleEquipos">Sin datos</small></div>
+                <div class="dashboard-card"><span class="dashboard-label">Cumplimiento ART</span><strong id="dashART">0%</strong><small id="dashDetalleART">Sin datos</small></div>
+                <div class="dashboard-card"><span class="dashboard-label">Riesgo del turno</span><strong id="dashRiesgo">Bajo</strong><small id="dashDetalleRiesgo">Sin alertas</small></div>
+              </div>
+              <div class="alert-box" id="alertBox">Sin alertas críticas.</div>
+              <div class="trend-grid">
+                <div class="trend-card"><span>Producción</span><div class="bar"><div id="barProduccion"></div></div></div>
+                <div class="trend-card"><span>Disponibilidad</span><div class="bar"><div id="barDisponibilidad"></div></div></div>
+                <div class="trend-card"><span>ART</span><div class="bar"><div id="barART"></div></div></div>
+              </div>
+            </div>
+          </section>
+          <section class="panel" id="metas">
+            <div class="panel-header" data-collapse="metas"><h3>Metas del turno</h3><p>Real vs objetivo</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <button class="btn btn-clear-section" type="button" data-clear-section="metas">Limpiar pestaña</button>
+              <div class="grid grid-4">
+                <label><span>Meta m3 removidos</span><input type="number" step="0.01" min="0" name="metaM3Scoop" /></label>
+                <label><span>Meta m2 malla</span><input type="number" step="0.01" min="0" name="metaM2Malla" /></label>
+                <label><span>Meta metros perforados</span><input type="number" step="0.01" min="0" name="metaMetrosJumbo" /></label>
+                <label><span>Meta pernos expansor</span><input type="number" step="1" min="0" name="metaPernosExpansor" /></label>
+              </div>
+            </div>
+          </section>
+          <section class="panel" id="resumen">
+            <div class="panel-header" data-collapse="resumen"><h3>Resumen ejecutivo</h3><p>Vista gerencial</p><span class="collapse-icon"></span></div>
+            <div class="panel-body"><div class="summary-box" id="summaryBox">Completa el formulario para generar resumen.</div></div>
+          </section>
+          <section class="panel" id="validacion">
+            <div class="panel-header" data-collapse="validacion"><h3>Validación crítica</h3><p>Bloquea envío si faltan datos</p><span class="collapse-icon"></span></div>
+            <div class="panel-body"><div id="validationBox" class="validation-box ok">Sin observaciones.</div></div>
+          </section>
+          <section class="panel" id="cierre">
+            <div class="panel-header" data-collapse="cierre"><h3>Cierre de turno</h3><p>Aprobación final</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <button class="btn btn-clear-section" type="button" data-clear-section="cierre">Limpiar pestaña</button>
+              <div class="grid grid-3">
+                <label><span>Supervisor aprobador</span><input type="text" name="supervisorAprobador" /></label>
+                <label><span>Cierre aprobado</span><select name="cierreAprobado"><option value="">Seleccione</option><option>NO</option><option>SI</option></select></label>
+                <label><span>Hora de cierre</span><input type="time" name="horaCierre" /></label>
+              </div>
+              <label class="mt-16"><span>Comentario de cierre</span><textarea name="comentarioCierre" rows="3"></textarea></label>
+            </div>
+          </section>
+          <section class="panel" id="historial">
+            <div class="panel-header" data-collapse="historial"><h3>Historial local</h3><p>Últimos informes</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div class="history-actions history-actions-align"><button class="btn btn-add-inline" type="button" id="saveHistoryBtn">Guardar en historial</button><button class="btn btn-clear-section" type="button" id="clearHistoryBtn">Limpiar historial</button></div>
+              <div id="historyList" class="history-list">Sin registros.</div>
+            </div>
+          </section>
+          <section class="panel" id="consolidado">
+            <div class="panel-header" data-collapse="consolidado"><h3>Consolidado gerencial</h3><p>Análisis historial</p><span class="collapse-icon"></span></div>
+            <div class="panel-body">
+              <div class="grid grid-4">
+                <label><span>Filtro mina</span><input type="text" id="filterMina" placeholder="Todas" /></label>
+                <label><span>Filtro capataz</span><input type="text" id="filterCapataz" placeholder="Todos" /></label>
+                <label><span>Desde</span><input type="date" id="filterDesde" /></label>
+                <label><span>Hasta</span><input type="date" id="filterHasta" /></label>
+              </div>
+              <div class="history-actions history-actions-align mt-16"><button class="btn btn-add-inline" type="button" id="applyFiltersBtn">Aplicar filtros</button><button class="btn btn-clear-section" type="button" id="resetFiltersBtn">Quitar filtros</button><button class="btn btn-outline" type="button" id="exportConsolidatedBtn" style="color:var(--primary);border-color:var(--border)">Exportar CSV</button></div>
+              <div class="dashboard-grid">
+                <div class="dashboard-card"><span class="dashboard-label">Informes</span><strong id="consInformes">0</strong><small>En filtro</small></div>
+                <div class="dashboard-card"><span class="dashboard-label">m3 acumulados</span><strong id="consM3">0</strong></div>
+                <div class="dashboard-card"><span class="dashboard-label">m2 malla</span><strong id="consM2">0</strong></div>
+                <div class="dashboard-card"><span class="dashboard-label">Metros jumbo</span><strong id="consMetros">0</strong></div>
+              </div>
+              <div class="dashboard-grid">
+                <div class="dashboard-card"><span class="dashboard-label">Disp. promedio</span><strong id="consDisp">0%</strong></div>
+                <div class="dashboard-card"><span class="dashboard-label">Top capataz</span><strong id="consTopCapataz">-</strong><small id="consTopDetalle">Sin datos</small></div>
+                <div class="dashboard-card"><span class="dashboard-label">Top mina</span><strong id="consTopMina">-</strong><small id="consTopMinaDetalle">Sin datos</small></div>
+                <div class="dashboard-card"><span class="dashboard-label">Prom. F/S</span><strong id="consFS">0</strong></div>
+              </div>
+              <div id="rankingCapataz" class="history-list">Sin ranking.</div>
+            </div>
+          </section>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <nav class="mobile-bottom-nav" id="mobileNav">
+    <div class="mobile-bottom-nav-inner">
+      <a href="#" data-mobile-tab="tab1" onclick="switchTab('tab1');return false"><span class="mobile-nav-icon">&#9998;</span>Operaciones</a>
+      <a href="#" data-mobile-tab="tab2" onclick="switchTab('tab2');return false"><span class="mobile-nav-icon">&#9783;</span>Materiales</a>
+      <a href="#" data-mobile-tab="tab3" onclick="switchTab('tab3');return false"><span class="mobile-nav-icon">&#9733;</span>KPI</a>
+    </div>
+  </nav>
+
+  <!-- === TEMPLATES === -->
+  <template id="jaulaTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Jaula</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Operador</span><input type="text" data-field="operador" /></label><label><span>N° interno</span><input type="text" data-field="interno" /></label><label><span>Estado</span><select data-field="estado"><option value="">Seleccione</option><option>Operativo</option><option>F/S</option><option>En mantención</option></select></label><label><span>Tipo jaula</span><select data-field="tipoJaula"><option value="">Seleccione</option><option>Jaula malla</option><option>Jaula lechado</option><option>Jaula carguío</option></select></label><label><span>Tipo</span><select data-field="tipoLechadora"><option value="">Seleccione</option><option>Lechadora</option><option>Solo plataforma</option></select></label><label><span>Anclaje</span><select data-field="anclaje"><option value="">Seleccione</option><option>Antiguo</option><option>Estandarizado</option></select></label><label><span>Pernos lechados</span><input type="number" min="0" data-field="pernosLechados" /></label><label><span>Cables lechados</span><input type="number" min="0" data-field="cablesLechados" /></label></div><label class="mt-16"><span>Observación</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto jaula</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="equipo" /><div class="preview"></div></label><label class="photo-card"><span>Foto anclaje</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="anclaje" /><div class="preview"></div></label></div></article></template>
+  <template id="plataformaTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Plataforma</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Operador</span><input type="text" data-field="operador" /></label><label><span>N° interno</span><input type="text" data-field="interno" /></label><label><span>Estado</span><select data-field="estado"><option value="">Seleccione</option><option>Operativo</option><option>F/S</option><option>En mantención</option></select></label><label><span>Tipo</span><select data-field="tipoPlataforma"><option value="">Seleccione</option><option>Plataforma hilteo con émbolo</option><option>Plataforma con Lechadora</option></select></label><label><span>Lechadora</span><select data-field="tipoLechadora"><option value="">Seleccione</option><option>Lechadora</option><option>Solo plataforma</option></select></label><label><span>Anclaje</span><select data-field="anclaje"><option value="">Seleccione</option><option>Antiguo</option><option>Estandarizado</option></select></label><label><span>m2 hilteo</span><input type="number" step="0.01" min="0" data-field="m2Hilteo" /></label></div><label class="mt-16"><span>Observación</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="equipo" /><div class="preview"></div></label><label class="photo-card"><span>Foto anclaje</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="anclaje" /><div class="preview"></div></label></div></article></template>
+  <template id="portaMarcosTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Porta Marcos</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Operador</span><input type="text" data-field="operador" /></label><label><span>N° interno</span><input type="text" data-field="interno" /></label><label><span>Estado</span><select data-field="estado"><option value="">Seleccione</option><option>Operativo</option><option>F/S</option></select></label><label><span>Marcos instalados</span><input type="number" min="0" data-field="marcos" /></label></div><label class="mt-16"><span>Observación</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="equipo" /><div class="preview"></div></label></div></article></template>
+  <template id="otherEquipmentTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Equipo</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Operador</span><input type="text" data-field="operador" /></label><label><span>N° interno</span><input type="text" data-field="interno" /></label><label><span>Estado</span><select data-field="estado"><option value="">Seleccione</option><option>Operativo</option><option>F/S</option><option>No aplica</option></select></label><label class="retro-config"><span>Config</span><select data-field="config"><option value="">Seleccione</option><option>Balde</option><option>Martillo</option></select></label><label class="retro-config"><span>Baldadas</span><input type="number" min="0" data-field="baldadasRetro" /></label><label class="retro-config"><span>m3</span><input type="number" step="0.01" min="0" data-field="m3Retro" readonly /></label><label class="brook-config"><span>Config</span><select data-field="configBrook"><option value="">Seleccione</option><option>Balde</option><option>Martillo</option><option>Viga</option></select></label><label class="acunador-only"><span>m2 demolidos</span><input type="number" step="0.01" min="0" data-field="m2Demolidos" /></label><label class="jumbo-only"><span>Tipo jumbo</span><select data-field="tipoJumbo"><option value="">Seleccione</option><option>Boltec</option><option>Frontal</option><option>Autónomo</option><option>Simba</option></select></label><label class="jumbo-only"><span>Metros perf.</span><input type="number" step="0.01" min="0" data-field="metrosPerforados" /></label><label class="jumbo-only"><span>Tiros</span><input type="number" min="0" data-field="tiros" /></label><label class="jumbo-only"><span>Escareados</span><input type="number" min="0" data-field="escareados" /></label><label class="jumbo-only"><span>Pernos expansor</span><input type="number" min="0" data-field="pernosExpansor" /></label><label class="jumbo-only"><span>Status prox. turno</span><input type="text" data-field="statusProximoTurno" /></label><label class="jumbo-only"><span>Aceros</span><input type="text" data-field="aceros" /></label><label class="jumbo-only"><span>Barras</span><input type="text" data-field="barras" /></label><label class="jumbo-only"><span>Bit</span><input type="text" data-field="bit" /></label><label class="jumbo-only"><span>Culatín</span><input type="text" data-field="culatin" /></label><label class="tensadora-only"><span>Estado</span><select data-field="estadoTensadora"><option value="">Seleccione</option><option>Operativa</option><option>F/S</option><option>No aplica</option></select></label><label class="tensadora-only"><span>Cables tensados</span><input type="number" min="0" data-field="pernosCablesTensados" /></label><label class="tensadora-only"><span>Long. cables</span><input type="text" data-field="longitudCables" /></label><label class="roboshot-only"><span>Modo</span><select data-field="modoRoboshot"><option value="">Seleccione</option><option>Proyección</option><option>Bombeado</option></select></label><label class="roboshot-only"><span>Tipo shotcrete</span><select data-field="tipoShotcrete"><option value="">Seleccione</option><option>Shotcrete con fibra</option><option>Shotcrete sin fibra</option><option>Shotcrete 300</option></select></label><label class="roboshot-only"><span>m3 proyectados</span><input type="number" step="0.01" min="0" data-field="m3Proyectados" /></label><label class="roboshot-only"><span>m3 bombeados</span><input type="number" step="0.01" min="0" data-field="m3Bombeados" /></label><label class="scoop-only"><span>Baldadas</span><input type="number" min="0" data-field="baldadas" /></label><label class="scoop-only"><span>m3 extraídos</span><input type="number" step="0.01" min="0" data-field="cantidadExtraida" readonly /></label><label class="mixer-only"><span>Vueltas</span><input type="number" min="0" data-field="vueltas" /></label><label class="mixer-only"><span>Plantas</span><input type="text" data-field="plantas" /></label></div><label class="mt-16"><span>Observación</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto equipo</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="equipo" /><div class="preview"></div></label><label class="photo-card mixer-only-photo"><span>Foto guía</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="guia" /><div class="preview"></div></label></div></article></template>
+  <template id="radioTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Radio</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>A cargo</span><input type="text" data-field="responsable" /></label><label><span>Serie</span><input type="text" data-field="serie" /></label><label><span>Estado</span><select data-field="estado"><option value="">Seleccione</option><option>Operativa</option><option>Con falla</option><option>Entregada a eléctricos</option></select></label><label><span>Quién recibe</span><input type="text" data-field="recibe" /></label></div><label class="mt-16"><span>Observación</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto radio</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="serie" /><div class="preview"></div></label><label class="photo-card"><span>Foto entrega</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="entrega" /><div class="preview"></div></label></div></article></template>
+  <template id="materialTemplate"><article class="card-entry"><div class="entry-top"><h4 data-title>Material</h4></div><div class="material-note" data-note></div><div class="grid grid-4"><label><span>Estatus</span><select data-field="estatus"><option value="">Seleccione</option><option>Disponible</option><option>Bajo stock</option><option>No disponible</option></select></label><label><span>Cantidad</span><input type="text" data-field="cantidad" /></label><label><span>Unidad</span><input type="text" data-field="unidad" placeholder="un, kg, saco, rollo" /></label><label><span>Observación</span><input type="text" data-field="detalle" /></label><label class="cable-only"><span>Longitud cables</span><input type="text" data-field="longitud" /></label></div></article></template>
+  <template id="toolTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Herramienta</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-3"><label><span>Código</span><input type="text" data-field="codigo" /></label><label><span>Estado</span><select data-field="estado"><option value="">Seleccione</option><option>Operativa</option><option>Dañada</option><option>Fuera de uso</option></select></label><label><span>Ubicación</span><input type="text" data-field="sector" /></label></div><label class="mt-16"><span>Observación</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="herramienta" /><div class="preview"></div></label></div></article></template>
+  <template id="artTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>ART</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-3"><label><span>Trabajo a realizar</span><input type="text" data-field="trabajo" /></label><label><span>EPP definidos</span><select data-field="epp"><option value="">Seleccione</option><option>SI</option><option>NO</option></select></label><label><span>Segregación</span><select data-field="segreg"><option value="">Seleccione</option><option>SI</option><option>NO</option></select></label><label><span>Riesgos identificados</span><select data-field="riesgos"><option value="">Seleccione</option><option>SI</option><option>NO</option></select></label><label><span>Firmado trabajadores</span><select data-field="firmTrab"><option value="">Seleccione</option><option>SI</option><option>NO</option></select></label><label><span>Revisado supervisor</span><select data-field="firmSup"><option value="">Seleccione</option><option>SI</option><option>NO</option></select></label></div><label class="mt-16"><span>Observaciones</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto frontal</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="frontal" /><div class="preview"></div></label><label class="photo-card"><span>Foto posterior</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="posterior" /><div class="preview"></div></label></div></article></template>
+  <template id="procedimientoTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Procedimiento</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Nombre procedimiento</span><input type="text" data-field="nombre" /></label><label><span>Código / N° documento</span><input type="text" data-field="codigo" /></label><label><span>Versión</span><input type="text" data-field="version" /></label><label><span>Estado</span><select data-field="estado"><option value="">Seleccione</option><option>Vigente</option><option>En revisión</option><option>Vencido</option></select></label><label><span>Aplicado correctamente</span><select data-field="aplicado"><option value="">Seleccione</option><option>SI</option><option>NO</option><option>Parcial</option></select></label><label><span>Responsable</span><input type="text" data-field="responsable" /></label><label class="col-span-2"><span>Área / sector</span><input type="text" data-field="area" /></label></div><label class="mt-16"><span>Observaciones</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid photo-grid-3"><label class="photo-card"><span>Foto procedimiento</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="procedimiento" /><div class="preview"></div></label><label class="photo-card"><span>Foto evidencia</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="evidencia" /><div class="preview"></div></label><label class="photo-card"><span>Foto adicional</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="adicional" /><div class="preview"></div></label></div></article></template>
+  <template id="activityTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Actividad</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Mina</span><input type="text" data-field="mina" /></label><label><span>Postura</span><input type="text" data-field="postura" /></label><label><span>Capataz</span><input type="text" data-field="capataz" /></label><label><span>Personal</span><input type="text" data-field="personal" /></label><label><span>Estatus materiales</span><select data-field="estatusMateriales"><option value="">Seleccione</option><option>Disponible</option><option>Parcial</option><option>No disponible</option></select></label><label class="col-span-3"><span>Actividad</span><input type="text" data-field="actividad" /></label><label><span>m2 malla</span><input type="number" step="0.01" min="0" data-field="m2Malla" /></label><label><span>Calidad malla</span><select data-field="calidadMalla"><option value="">Seleccione</option><option>G80</option><option>R80</option><option>5000-100NR</option><option>MFI 3500-75</option><option>10006</option><option>R65</option></select></label><label><span>Retiro rises (m3)</span><input type="number" step="0.01" min="0" data-field="retiroRises" /></label><label><span>Aseo baños</span><select data-field="aseoBanos"><option value="">Seleccione</option><option>SI</option><option>NO</option></select></label></div><label class="mt-16"><span>Detalle</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="actividad" /><div class="preview"></div></label></div></article></template>
+  <template id="siteEvidenceTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Evidencia gestión de sitio</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-2"><label><span>Título</span><input type="text" data-field="titulo" /></label><label><span>Comentario</span><textarea rows="2" data-field="comentario"></textarea></label></div><div class="photo-grid"><label class="photo-card"><span>Foto evidencia</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="sitio" /><div class="preview"></div></label></div></article></template>
+  <template id="pendingTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Pendiente</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Mina</span><input type="text" data-field="mina" /></label><label><span>Postura</span><input type="text" data-field="postura" /></label><label><span>Capataz</span><input type="text" data-field="capataz" /></label><label><span>Personal</span><input type="text" data-field="personal" /></label><label class="col-span-3"><span>Actividad pendiente</span><input type="text" data-field="actividad" /></label></div><label class="mt-16"><span>Detalle</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="pendiente" /><div class="preview"></div></label></div></article></template>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
