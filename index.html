@@ -8,10 +8,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Reporte turno Capataz" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='28' fill='%23123c7b'/%3E%3Ctext x='90' y='112' text-anchor='middle' font-family='Arial' font-weight='bold' font-size='68' fill='white'%3EXM%3C/text%3E%3C/svg%3E" />
+  <meta name="description" content="Reporte operativo de turno para capataces con soporte offline y sincronización a Google Sheets." />
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="preload" as="image" href="logo.jpg" />
+  <link rel="preload" as="fetch" href="data_maestros.json" crossorigin="anonymous" />
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
   <div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
@@ -69,6 +72,7 @@
       <div class="actions-stack">
         <button class="btn btn-primary" type="button" id="saveBtn">Guardar offline</button>
         <button class="btn btn-secondary" type="button" id="syncBtn">Enviar a Google Sheets</button>
+        <button class="btn btn-outline" type="button" id="installBtn" hidden>Instalar app</button>
         <button class="btn btn-secondary" type="button" id="pdfBtn">Exportar PDF</button>
         <button class="btn btn-outline" type="button" id="exportBtn">Exportar JSON</button>
         <button class="btn btn-outline" type="button" id="exportFlatBtn">CSV Power BI</button>
@@ -325,7 +329,7 @@
   <template id="siteEvidenceTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Evidencia gestión de sitio</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-2"><label><span>Título</span><input type="text" data-field="titulo" /></label><label><span>Comentario</span><textarea rows="2" data-field="comentario"></textarea></label></div><div class="photo-grid"><label class="photo-card"><span>Foto evidencia</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="sitio" /><div class="preview"></div></label></div></article></template>
   <template id="pendingTemplate"><article class="card-entry dynamic-entry"><div class="entry-top"><h4 data-title>Pendiente</h4><button class="btn-mini btn-delete" type="button">Eliminar</button></div><div class="grid grid-4"><label><span>Mina</span><input type="text" data-field="mina" /></label><label><span>Postura</span><input type="text" data-field="postura" /></label><label><span>Capataz</span><input type="text" data-field="capataz" /></label><label><span>Personal</span><input type="text" data-field="personal" /></label><label class="col-span-3"><span>Actividad pendiente</span><input type="text" data-field="actividad" /></label></div><label class="mt-16"><span>Detalle</span><textarea rows="2" data-field="detalle"></textarea></label><div class="photo-grid"><label class="photo-card"><span>Foto</span><input type="file" accept="image/*" capture="environment" data-dynamic-photo="pendiente" /><div class="preview"></div></label></div></article></template>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,360 @@
+{
+  "version": "v22",
+  "updated_from": "Informacion(1).xlsx",
+  "minas": [
+    "ESMERALDA",
+    "RENO",
+    "PILAR NORTE",
+    "TTE 8",
+    "TTE 7",
+    "ANDES NORTE",
+    "PACIFICO SUPERIOR",
+    "DIABLO REGIMIENTO",
+    "PANEL INVARIANTE"
+  ],
+  "jornadas": [
+    "Día",
+    "Noche"
+  ],
+  "grupos": [
+    "GRUPO 1",
+    "GRUPO 2",
+    "GRUPO 3",
+    "GRUPO 4"
+  ],
+  "capataces": [
+    {
+      "nombre": "SERGIO ISMAEL ALAMOS DIAZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "PABLO ANTONIO ALBORNOZ ALBORNOZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "CARLOS SEBASTIÁN ARANDA ZENTENO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "JUAN MANUEL BAEZA VERGARA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "SEBASTIAN DEL CARMEN BARRERA CASTRO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "PHILLIPE GUSTAVO BARRIOS ROJAS",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "ROBERTO ERNESTO BERRIOS GALAZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "JOSE RUBEN BERROCAL AGUILAR",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "PIERO ENRIQUE BLANCO MARQUEZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "CRISTOBAL SEBASTIAN BRICEÑO VALENZUELA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "JUAN PABLO CAIFAL DURAN",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "NAHUN ISAI CAMPOS MICHEA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "NALDO ALBERTO CARMONA ALVAREZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "CLAUDIO ALEXIS CATRILEO QUIROZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "WILSON ALEJANDRO CONEJEROS AVILA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "MIGUEL IGNACIO DIAZ AVENDAÑO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "MIGUEL EMILIO DIAZ HERNANDEZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "ARMANDO JAVIER DONOSO GONZALEZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "JONATHAN LUIS DURAN RODRIGUEZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "MARCELO IVAN FERNANDEZ CAIRE",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "IGNACIO NICOLAS FERNANDEZ SEPULVEDA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "NASLO GIOVANNI FLORES RIQUELME",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "ALEXIS FELIPE FLORES SOTO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "RICARDO PATRICIO FOLLERT ORMEÑO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "JONATHAN ANDRES GALLARDO ANDRADE",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "CRISTIAN EDUARDO GONZALEZ MONSALVE",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "DAGOBERTO JOAQUIN GONZALEZ VARA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "JONATHAN MARIANO GONZALEZ CONTRERAS",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "MAURICIO RENE GUTIERREZ SOTO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "GUSTAVO ALEXANDER GUTIERREZ TAUCAN",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "SEBASTIAN ANDRES GUZMAN PEREZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "CARLOS ALEXIS IBAÑEZ GALDAMES",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "GUILLERMO ANTONIO ITURRIAGA GONZALEZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "JAVIER JOSE JABANA GONZALEZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "GERALD ALEXANDER LEIVA NAVARRO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "RICARDO DEL CARMEN LORCA ARAYA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "JOSE PEDRO LUNA AMPUERO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "ALVARO EMILIO MATURANA ROMO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "JUAN CARLOS MOLINA CONTRERAS",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "CRISTOPHER EDUARDO MONCADA ARAYA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "CARLOS MIGUEL PADILLA JARA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "PATRICIO ALEJANDRO PINO ORTEGA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "CLAUDIO ANDRES PONTIGO MILLAR",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "JUAN JOSE QUINTANILLA DROGUETT",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "RODRIGO ELIAS QUIROZ MORAGA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "LUIS ALBERTO RAMIREZ CERDA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "JUAN ROLANDO RISCO RISCO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "SEBASTIAN ALEJANDRO SACRE ASTORGA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "FELIPE ADRIAN SANDOVAL DAZA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "JHON ANDRES SEPULVEDA OVIEDO",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "RAÚL ALEJANDRO SOTOMAYOR PAVEZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "RICHARD OMAR TAPIA BARRIA",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "JORGE ANDRES TORO MUÑOZ",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "OSCAR ANDRES VALDES OLIVARES",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "DAVIS PATRICIO VENEGAS ALARCON",
+      "cargo": "CAPATAZ",
+      "grupo": "GRUPO 2"
+    }
+  ],
+  "jefesTurno": [
+    {
+      "nombre": "MIGUEL ANGEL ALDUNCE DEVIA",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "MARCOS ANTONIO DROGUETT MUÑOZ",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "CRISTOFER NIVALDO GARRIDO CASTILLO",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 3"
+    },
+    {
+      "nombre": "HERNAN ENRIQUE HORMAZABAL SOTO",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "JAVIER ANTONIO LEIVA BECERRA",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 2"
+    },
+    {
+      "nombre": "OMAR JAMPIER REUSSIER MANRIQUEZ",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 1"
+    },
+    {
+      "nombre": "CLAUDIO ANDRES REYES JOHNSON",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 4"
+    },
+    {
+      "nombre": "RODRIGO ISMAEL URZUA DELGADO",
+      "cargo": "JEFE DE TURNO",
+      "grupo": "GRUPO 3"
+    }
+  ],
+  "jefesTerreno": [
+    {
+      "nombre": "MARCO ANTONIO DROGUETT PAVEZ",
+      "cargo": "JEFE DE TERRENO"
+    },
+    {
+      "nombre": "FRANCO ESTEBAN MAÑAN QUERALTO",
+      "cargo": "JEFE DE TERRENO"
+    }
+  ],
+  "jefesOperaciones": [
+    {
+      "nombre": "LARRY WILSON CERECEDA BARRERA",
+      "cargo": "JEFE OPERACIONES"
+    }
+  ]
+}
