@@ -13,12 +13,13 @@ let deferredInstallPrompt = null;
 
 const OTHER_EQUIPMENT_TYPES = ["Equipo levante","Retro excavadora","Acuñador mecanizado","Jumbo","Brook","Scoop","Roboshot","Mixer","Tensadora"];
 const MATERIAL_TYPES = [
-  ["Malla",""],["Malla Acma C196",""],["Malla Acma 567",""],["Malla Pollera",""],["Pernos helicoidales 2,50 mts x 25 mm",""],["Pernos helicoidales 2,55 mts x 25 mm",""],
-  ["Pernos helicoidales 2,70 mts x 25 mm",""],["Pernos helicoidales 2,90 mts x 25 mm",""],
-  ["Pernos helicoidales 2,30 mts x 22 mm","Solo Interzanja o C33 rotura Z66 o Z67"],
-  ["Planchuelas 10 mm",""],["Planchuelas 6 mm","Solo Interzanja o C33 rotura Z66 o Z67"],
-  ["Tuercas 25 mm",""],["Tuercas 22 mm","Solo Interzanja o C33 rotura Z66 o Z67"],
-  ["Cemento",""],["Pernos cables",""]
+  ["Malla Bizcocho", ""],
+  ["Malla Acma", ""],
+  ["Perno helicoidal", ""],
+  ["Planchuelas", ""],
+  ["Tuercas", ""],
+  ["Cemento", ""],
+  ["Pernos cables", ""]
 ];
 const DEFAULT_TOOL_TYPES = ["Galletera","Taladro","Llave impacto","Soldadora","Equipo oxicorte"];
 
@@ -257,7 +258,7 @@ function updateDependentSelects() {
 /* === REFS (set on DOMContentLoaded) === */
 var form, saveStatus, syncStatus, sizeStatus, summaryBox, validationBox, folioDisplay;
 var containers = {};
-var counters = {jaula:0,plataforma:0,porta:0,radio:0,tool:0,art:0,activity:0,pending:0,procedimiento:0,site:0};
+var counters = {jaula:0,plataforma:0,porta:0,radio:0,tool:0,art:0,activity:0,pending:0,procedimiento:0,site:0,worker:0,interferenceInternal:0,interferenceExternal:0};
 var otherCounter = OTHER_EQUIPMENT_TYPES.length;
 var hasUnsavedChanges = false;
 var maestrosData = null;
@@ -277,7 +278,9 @@ document.addEventListener("DOMContentLoaded", function() {
     radios:$("radiosContainer"), materials:$("materialsContainer"),
     tools:$("toolsContainer"), art:$("artContainer"),
     activities:$("activitiesContainer"), pending:$("pendingContainer"),
-    procedimientos:$("procedimientosContainer"), siteEvidence:$("siteEvidenceContainer")
+    procedimientos:$("procedimientosContainer"), siteEvidence:$("siteEvidenceContainer"),
+    workers:$("workersContainer"), internalInterference:$("internalInterferenceContainer"),
+    externalInterference:$("externalInterferenceContainer")
   };
 
   // Restore saved tab
@@ -404,33 +407,24 @@ function startAutosave() {
 }
 
 /* === BUILD SECTIONS === */
+
 function buildStaticSections() {
   addJaula(); addPlataforma(); addPorta();
-  OTHER_EQUIPMENT_TYPES.forEach(function(name,i){
-    var frag=createEntry("otherEquipmentTemplate",name,"other_"+i);
-    var article=firstArticle(frag);
-    article.dataset.equipmentName=name;
-    toggleEquipmentFields(article,name);
-    wireEquipmentCalc(article,name);
-    addDeleteHandler(article);
-    containers.others.appendChild(frag);
+  OTHER_EQUIPMENT_TYPES.forEach(function(name){
+    if(name==="Jumbo") return;
+    addOtherEquipment(name);
   });
   addRadio();
   MATERIAL_TYPES.forEach(function(pair,i){
     var name=pair[0],note=pair[1];
-    var frag=createEntry("materialTemplate",name,"mat_"+i);
-    var article=firstArticle(frag);
-    var noteEl=article.querySelector("[data-note]");
-    noteEl.textContent=note||"";if(!note)noteEl.style.display="none";
-    if(name!=="Pernos cables"){article.querySelectorAll("[data-field]").forEach(function(el){if(el.name&&el.name.endsWith("_longitud"))el.closest("label").style.display="none";});}
-    if(name==="Malla"){
-      var grid=article.querySelector(".grid");
-      if(grid){var lbl=document.createElement("label");lbl.innerHTML='<span>Tipo de malla</span>';var sel=document.createElement("select");sel.name="mat_"+i+"_tipoMalla";sel.dataset.field="tipoMalla";sel.innerHTML='<option value="">Seleccione</option><option>G80</option><option>R80</option><option>5000-100NR</option><option>MFI 3500-75</option><option>10006</option><option>R65</option>';lbl.appendChild(sel);grid.insertBefore(lbl,grid.firstChild);}
-    }
-    containers.materials.appendChild(frag);
+    addMaterial(name, note, i);
   });
   DEFAULT_TOOL_TYPES.forEach(function(name){addTool(name);});
-  addArt(); addActivity(); addPending(); addProcedimiento(); addSiteEvidence();
+  addArt(); addProcedimiento(); addSiteEvidence(); addPending();
+  for (var i=0;i<4;i++) addWorker();
+  addInterference("internal");
+  addInterference("external");
+  addActivity();
   recomputeAll();
 }
 
@@ -465,7 +459,7 @@ function wireEntryButtons(article){
   });
   actions.appendChild(clearBtn);
 
-  if(article.dataset.tplId !== "materialTemplate"){
+  if(true){
     var addBtn = document.createElement("button");
     addBtn.type = "button";
     addBtn.className = "btn-card btn-card-add";
@@ -506,6 +500,7 @@ function addSameEntry(article){
     case "pendingTemplate": addPending(); break;
     case "procedimientoTemplate": addProcedimiento(); break;
     case "siteEvidenceTemplate": addSiteEvidence(); break;
+    case "materialTemplate": addMaterial(title, article.querySelector("[data-note]") ? article.querySelector("[data-note]").textContent : "", parseInt((article.dataset.entryId || "").split("_")[1], 10)); break;
     case "otherEquipmentTemplate": addOtherEquipment(article.dataset.equipmentName || title); break;
   }
 }
@@ -532,6 +527,7 @@ function addDeleteHandler(article){
       else if(tplId==="pendingTemplate") addPending();
       else if(tplId==="procedimientoTemplate") addProcedimiento();
       else if(tplId==="siteEvidenceTemplate") addSiteEvidence();
+      else if(tplId==="materialTemplate") addMaterial(title, article.querySelector("[data-note]") ? article.querySelector("[data-note]").textContent : "", parseInt((article.dataset.entryId || "").split("_")[1], 10));
     }
     hasUnsavedChanges=true;
     recomputeAll();
@@ -543,17 +539,56 @@ function addDynamicEntry(type,tplId,container,prefix){
   addDeleteHandler(firstArticle(frag));container.appendChild(frag);recomputeAll();
   if(window.innerWidth<=900)requestAnimationFrame(function(){var last=container.lastElementChild;if(last)last.scrollIntoView({behavior:"smooth",block:"nearest"});});
 }
+
 function addJaula(){addDynamicEntry("jaula","jaulaTemplate",containers.jaulas,"Jaula");}
 function addPlataforma(){addDynamicEntry("plataforma","plataformaTemplate",containers.plataformas,"Plataforma");}
 function addPorta(){addDynamicEntry("porta","portaMarcosTemplate",containers.portaMarcos,"Porta Marcos");}
 function addRadio(){addDynamicEntry("radio","radioTemplate",containers.radios,"Radio Handy");}
 function addArt(){addDynamicEntry("art","artTemplate",containers.art,"Reporte ART");}
-function addActivity(){addDynamicEntry("activity","activityTemplate",containers.activities,"Actividad");}
+function addActivity(){
+  counters.activity++;
+  var frag=createEntry("activityTemplate","Actividad "+counters.activity,"activity_"+counters.activity);
+  var article=firstArticle(frag);
+  wireActivityCard(article);
+  addDeleteHandler(article);
+  containers.activities.appendChild(frag);
+  recomputeAll();
+}
 function addPending(){addDynamicEntry("pending","pendingTemplate",containers.pending,"Pendiente");}
 function addProcedimiento(){addDynamicEntry("procedimiento","procedimientoTemplate",containers.procedimientos,"Procedimiento");}
 function addSiteEvidence(){addDynamicEntry("site","siteEvidenceTemplate",containers.siteEvidence,"Evidencia gestión de sitio");}
+function addMaterial(name, note, seedIndex){
+  counters.material = (counters.material || 0) + 1;
+  var index = typeof seedIndex === "number" ? seedIndex : 0;
+  var frag=createEntry("materialTemplate",name,"mat_"+index+"_"+counters.material);
+  var article=firstArticle(frag);
+  var noteEl=article.querySelector("[data-note]");
+  noteEl.textContent=note||"";
+  if(!note) noteEl.style.display="none";
+  configureMaterialCard(article, name);
+  addDeleteHandler(article);
+  containers.materials.appendChild(frag);
+  recomputeAll();
+}
 function addTool(title){counters.tool++;var f=createEntry("toolTemplate",title,"tool_"+counters.tool);addDeleteHandler(firstArticle(f));containers.tools.appendChild(f);recomputeAll();}
-
+function addWorker(){
+  counters.worker++;
+  var frag=createEntry("workerTemplate","Trabajador "+counters.worker,"worker_"+counters.worker);
+  addDeleteHandler(firstArticle(frag));
+  containers.workers.appendChild(frag);
+  recomputeAll();
+}
+function addInterference(type){
+  var key = type==="internal" ? "interferenceInternal" : "interferenceExternal";
+  counters[key]++;
+  var prefix = type==="internal" ? "intInt_" : "intExt_";
+  var title = type==="internal" ? "Interferencia interna "+counters[key] : "Interferencia externa "+counters[key];
+  var frag=createEntry("interferenceTemplate",title,prefix+counters[key]);
+  addDeleteHandler(firstArticle(frag));
+  if(type==="internal") containers.internalInterference.appendChild(frag);
+  else containers.externalInterference.appendChild(frag);
+  recomputeAll();
+}
 function addOtherEquipment(name){otherCounter++;var frag=createEntry("otherEquipmentTemplate",name,"other_"+otherCounter);var article=firstArticle(frag);article.dataset.equipmentName=name;article.dataset.groupKey=getGroupKeyForEntry("otherEquipmentTemplate",name);toggleEquipmentFields(article,name);wireEquipmentCalc(article,name);addDeleteHandler(article);containers.others.appendChild(frag);recomputeAll();}
 function showAddOtherEquipmentDialog(){
   var all=OTHER_EQUIPMENT_TYPES.concat(["Otro (personalizado)"]);
@@ -617,16 +652,135 @@ function createEntry(tplId,title,idBase){
   wireEntryButtons(article);
   return frag;
 }
+
+function setSelectItems(select, items){
+  if(!select) return;
+  var current = select.value || "";
+  select.innerHTML = '<option value="">Seleccione</option>' + items.map(function(item){ return '<option value="'+item.replace(/"/g,'&quot;')+'">'+item+'</option>'; }).join("");
+  if(current && items.indexOf(current)>=0) select.value = current;
+}
+function configureMaterialCard(article, name){
+  var unitSelect = article.querySelector('[data-field="unidad"]');
+  var typeWrap = article.querySelector('.material-subtype');
+  var typeSelect = article.querySelector('[data-field="tipo"]');
+  var units = ["Un"];
+  var types = [];
+  if(name==="Malla Bizcocho"){
+    units=["M2","Rollo"];
+    types=["5000-100NR","G80","R80","MFI 3500-75","10006","R65"];
+  } else if(name==="Malla Acma"){
+    units=["Unidad","Paño","M2"];
+    types=["C196","C567"];
+  } else if(name==="Perno helicoidal"){
+    units=["Un"];
+    types=["2,50 mts x 25 mm","2,55 mts x 25 mm","2,70 mts x 25 mm","2,90 mts x 25 mm","3,50 mts x 25 mm"];
+  } else if(name==="Planchuelas"){
+    units=["Un"];
+    types=["10 mm","6 mm"];
+  } else if(name==="Tuercas"){
+    units=["Un"];
+    types=["22 mm","25 mm"];
+  } else if(name==="Cemento"){
+    units=["Saco"];
+  } else if(name==="Pernos cables"){
+    units=["Un"];
+    types=["5 mts","8,5 mts","10,5 mts","11,5 mts","12,5 mts","15 mts"];
+  }
+  setSelectItems(unitSelect, units);
+  if(typeWrap){
+    if(types.length){ typeWrap.style.display=""; setSelectItems(typeSelect, types); }
+    else { typeWrap.style.display="none"; if(typeSelect) typeSelect.innerHTML='<option value="">Seleccione</option>'; }
+  }
+}
+function configureActivityByType(article){
+  var typeSel = article.querySelector('[data-activity-main]');
+  var equipSel = article.querySelector('[data-activity-equipo]');
+  var unitSel = article.querySelector('[data-activity-unit]');
+  var modeWrap = article.querySelector('.activity-mode');
+  var shotcreteWrap = article.querySelector('.activity-shotcrete');
+  var baldadasWrap = article.querySelector('.activity-baldadas');
+  var summary = article.querySelector('[data-activity-summary]');
+  var type = typeSel ? typeSel.value : "";
+  var equipItems = [], unitItems = [];
+  if(type==="Hilteo"){
+    equipItems=["Plataforma con émbolo"];
+    unitItems=["M2"];
+  } else if(type==="Marcos instalados"){
+    equipItems=["Porta Marcos"];
+    unitItems=["Unidad"];
+  } else if(type==="Retro excavadora"){
+    equipItems=["Retro excavadora"];
+    unitItems=["M3"];
+  } else if(type==="Acuñadura"){
+    equipItems=["Acuñadura manual","Acuñadura mecanizada","Brook","Acuñador mecanizado","Retro excavadora"];
+    unitItems=["M2"];
+  } else if(type==="Scoop"){
+    equipItems=["Scoop"];
+    unitItems=["M3"];
+  } else if(type==="Roboshot"){
+    equipItems=["Roboshot"];
+    unitItems=["M3"];
+  }
+  setSelectItems(equipSel, equipItems);
+  setSelectItems(unitSel, unitItems);
+  if(equipItems.length===1) equipSel.value=equipItems[0];
+  if(unitItems.length===1) unitSel.value=unitItems[0];
+  if(modeWrap) modeWrap.style.display = type==="Roboshot" ? "" : "none";
+  if(shotcreteWrap) shotcreteWrap.style.display = type==="Roboshot" ? "" : "none";
+  if(baldadasWrap) baldadasWrap.style.display = (type==="Scoop" || type==="Retro excavadora") ? "" : "none";
+  if(summary) summary.textContent = type ? type : "Actividad no configurada";
+}
+function recalcActivityCard(article){
+  if(!article) return;
+  var type = (article.querySelector('[data-activity-main]')||{}).value || "";
+  var qty = article.querySelector('[data-activity-qty]');
+  var buckets = article.querySelector('[data-activity-buckets]');
+  var summary = article.querySelector('[data-activity-summary]');
+  if(type==="Scoop" && qty && buckets){
+    var total = (parseFloat(buckets.value||"0") * 5.35);
+    qty.value = buckets.value ? total.toFixed(2) : "";
+  } else if(type==="Retro excavadora" && qty && buckets && !qty.dataset.manualEdited){
+    qty.value = buckets.value || "";
+  }
+  if(summary){
+    var unit = ((article.querySelector('[data-activity-unit]')||{}).value)||"";
+    summary.textContent = (type||"Actividad") + (qty && qty.value ? " · "+qty.value+(unit ? " "+unit : "") : "");
+  }
+}
+function wireActivityCard(article){
+  if(!article) return;
+  var typeSel = article.querySelector('[data-activity-main]');
+  var qty = article.querySelector('[data-activity-qty]');
+  var buckets = article.querySelector('[data-activity-buckets]');
+  [typeSel, article.querySelector('[data-activity-equipo]'), article.querySelector('[data-activity-unit]'),
+   article.querySelector('[data-activity-mode]'), article.querySelector('[data-activity-shotcrete]')].forEach(function(el){
+    if(el) el.addEventListener('change', function(){ if(el===typeSel) configureActivityByType(article); recalcActivityCard(article); recomputeAll(); });
+  });
+  if(qty) qty.addEventListener('input', function(){ qty.dataset.manualEdited="1"; recalcActivityCard(article); recomputeAll(); });
+  if(buckets) buckets.addEventListener('input', function(){ recalcActivityCard(article); recomputeAll(); });
+  configureActivityByType(article);
+  recalcActivityCard(article);
+}
+
 function toggleEquipmentFields(article,name){
   var show=function(s,y){article.querySelectorAll(s).forEach(function(e){e.style.display=y?"":"none";});};
-  show(".retro-config",name==="Retro excavadora");show(".brook-config",name==="Brook");
-  show(".acunador-only",name==="Acuñador mecanizado");show(".jumbo-only",name==="Jumbo");
+  show(".retro-config",false);show(".brook-config",name==="Brook");
+  show(".acunador-only",false);show(".jumbo-only",false);
   show(".tensadora-only",name==="Tensadora");show(".roboshot-only",name==="Roboshot");
-  show(".scoop-only",name==="Scoop");show(".mixer-only",name==="Mixer");show(".mixer-only-photo",name==="Mixer");
+  show(".scoop-only",false);show(".mixer-only",false);show(".mixer-only-photo",false);
+  article.querySelectorAll(".photo-card").forEach(function(card){ card.style.display=""; });
+  if(name==="Equipo levante" || name==="Retro excavadora" || name==="Acuñador mecanizado" || name==="Brook" || name==="Scoop" || name==="Roboshot" || name==="Tensadora"){
+    article.querySelectorAll(".photo-card").forEach(function(card){ card.style.display="none"; });
+  }
+  if(name==="Retro excavadora"){ show(".retro-config",true); article.querySelectorAll(".photo-card").forEach(function(card){ card.style.display="none"; }); }
+  if(name==="Brook"){ show(".brook-config",true); }
+  if(name==="Mixer"){ article.querySelectorAll(".photo-card").forEach(function(card){ card.style.display="none"; }); }
 }
 function wireEquipmentCalc(article,name){
-  if(name==="Scoop"){var b=article.querySelector('[data-field="baldadas"]'),c=article.querySelector('[data-field="cantidadExtraida"]');if(b&&c)b.addEventListener("input",function(){c.value=(parseFloat(b.value||"0")*7.5).toFixed(2);recomputeAll();});}
-  if(name==="Retro excavadora"){var b2=article.querySelector('[data-field="baldadasRetro"]'),c2=article.querySelector('[data-field="m3Retro"]');if(b2&&c2)b2.addEventListener("input",function(){c2.value=(parseFloat(b2.value||"0")*1).toFixed(2);recomputeAll();});}
+  if(name==="Retro excavadora"){
+    var b2=article.querySelector('[data-field="baldadasRetro"]'),c2=article.querySelector('[data-field="m3Retro"]');
+    if(b2&&c2)b2.addEventListener("input",function(){c2.value=(parseFloat(b2.value||"0")*1).toFixed(2);recomputeAll();});
+  }
 }
 
 /* === FORM LISTENERS === */
@@ -680,23 +834,14 @@ function collectValidationIssues(){
   if(!val("turno"))issues.push("Falta turno.");
   if(!val("mina"))issues.push("Falta mina.");
   if(!val("capataz"))issues.push("Falta capataz.");
-  containers.art.querySelectorAll(".card-entry").forEach(function(c,i){
-    var t=c.querySelector('input[name$="_trabajo"]');t=t?t.value.trim():"";
-    var f1=c.querySelector('.preview[id*="_photo_1"]');f1=f1&&f1.dataset.image;
-    var f2=c.querySelector('.preview[id*="_photo_2"]');f2=f2&&f2.dataset.image;
-    if(t&&(!f1||!f2))issues.push("ART "+(i+1)+": faltan fotos.");
+  var workerNames = 0;
+  containers.workers.querySelectorAll('input[name$="_nombre"]').forEach(function(i){ if(i.value.trim()) workerNames++; });
+  if(!workerNames) issues.push("Debe ingresar al menos un trabajador en dotación.");
+  var actCount = 0;
+  containers.activities.querySelectorAll('.card-entry').forEach(function(card){
+    var t=card.querySelector('select[name$="_tipoActividad"]'); if(t&&t.value) actCount++;
   });
-  containers.others.querySelectorAll(".card-entry").forEach(function(c){
-    var t=c.querySelector("h4")?c.querySelector("h4").textContent:"";
-    if(t.indexOf("Jumbo")>=0){
-      var m=c.querySelector('input[name$="_metrosPerforados"]');m=m?m.value.trim():"";
-      var ti=c.querySelector('input[name$="_tiros"]');ti=ti?ti.value.trim():"";
-      var s=c.querySelector('input[name$="_statusProximoTurno"]');s=s?s.value.trim():"";
-      if(!m||!ti||!s)issues.push("Jumbo: faltan metros, tiros o status.");
-    }
-    if(t.indexOf("Scoop")>=0){var b=c.querySelector('input[name$="_baldadas"]');if(!b||!b.value.trim())issues.push("Scoop: faltan baldadas.");}
-    if(t.indexOf("Retro")>=0){var b2=c.querySelector('input[name$="_baldadasRetro"]');if(!b2||!b2.value.trim())issues.push("Retro: faltan baldadas.");}
-  });
+  if(!actCount) issues.push("Debe registrar al menos una actividad realizada.");
   return issues;
 }
 function updateValidationBox(){
@@ -721,54 +866,53 @@ function updateKPIAndDashboard(){
   var eqFS=countReported(["F/S","Con falla"]);
   var artCount=0;containers.art.querySelectorAll(".card-entry").forEach(function(c){var t=c.querySelector('input[name$="_trabajo"]');if(t&&t.value.trim())artCount++;});
   var radios=0;containers.radios.querySelectorAll('input[name$="_recibe"]').forEach(function(i){if(i.value.trim())radios++;});
-  var m3S=sumInputs(containers.others,"_cantidadExtraida")+sumInputs(containers.others,"_m3Retro");
-  var m2M=sumInputs(containers.activities,"_m2Malla");
-  var mJ=sumInputs(containers.others,"_metrosPerforados");
-  var pE=sumInputs(containers.others,"_pernosExpansor");
-  var pL=sumInputs(containers.jaulas,"_pernosLechados");
-  var cL=sumInputs(containers.jaulas,"_cablesLechados");
-  var m2H=sumInputs(containers.plataformas,"_m2Hilteo");
-  var m2D=sumInputs(containers.others,"_m2Demolidos");
-  var m3P=sumInputs(containers.others,"_m3Proyectados");
-  var m3B=sumInputs(containers.others,"_m3Bombeados");
+
+  var m3Ret=0,m2Hil=0,marcos=0,m2Acu=0,m3P=0,m3B=0;
+  containers.activities.querySelectorAll(".card-entry").forEach(function(card){
+    var tipo = (card.querySelector('select[name$="_tipoActividad"]')||{}).value || "";
+    var modo = (card.querySelector('select[name$="_modoActividad"]')||{}).value || "";
+    var qty = parseFloat(((card.querySelector('input[name$="_cantidadActividad"]')||{}).value)||"0");
+    if(tipo==="Hilteo") m2Hil += qty;
+    else if(tipo==="Marcos instalados") marcos += qty;
+    else if(tipo==="Retro excavadora" || tipo==="Scoop") m3Ret += qty;
+    else if(tipo==="Acuñadura") m2Acu += qty;
+    else if(tipo==="Roboshot"){
+      if(modo==="Bombeable") m3B += qty;
+      else m3P += qty;
+    }
+  });
 
   var kpis={kpiEquiposOperativos:eqOp,kpiEquiposFS:eqFS,kpiART:artCount,kpiRadios:radios,
-    kpiM3Scoop:m3S.toFixed(2),kpiM2Malla:m2M.toFixed(2),kpiMetrosJumbo:mJ.toFixed(2),kpiPernosExpansor:pE.toFixed(0),
-    kpiPernosLechados:pL.toFixed(0),kpiCablesLechados:cL.toFixed(0),kpiM2Hilteo:m2H.toFixed(2),
-    kpiM2Demolidos:m2D.toFixed(2),kpiM3Proyectados:m3P.toFixed(2),kpiM3Bombeados:m3B.toFixed(2)};
+    kpiM3Retiro:m3Ret.toFixed(2),kpiM2Hilteo:m2Hil.toFixed(2),kpiMarcos:marcos.toFixed(0),
+    kpiM2Acunadura:m2Acu.toFixed(2),kpiM3Proyectados:m3P.toFixed(2),kpiM3Bombeados:m3B.toFixed(2)};
   for(var id in kpis){var el=$(id);if(el)el.textContent=kpis[id];}
 
   setKpiCardState("cardEquiposOperativos",eqOp>=6?"green":eqOp>=3?"yellow":"red");
   setKpiCardState("cardEquiposFS",eqFS<=1?"green":eqFS<=2?"yellow":"red");
   setKpiCardState("cardART",artCount>=1?"green":"red");
   setKpiCardState("cardRadios",radios>=1?"green":"yellow");
-  setKpiCardState("cardM3Scoop",m3S>=30?"green":m3S>=10?"yellow":"red");
-  setKpiCardState("cardM2Malla",m2M>=20?"green":m2M>=5?"yellow":"red");
-  setKpiCardState("cardMetrosJumbo",mJ>=50?"green":mJ>=15?"yellow":"red");
-  setKpiCardState("cardPernosExpansor",pE>=10?"green":pE>=1?"yellow":"red");
-  setKpiCardState("cardPernosLechados",pL>=10?"green":pL>=1?"yellow":"red");
-  setKpiCardState("cardCablesLechados",cL>=4?"green":cL>=1?"yellow":"red");
-  setKpiCardState("cardM2Hilteo",m2H>=10?"green":m2H>=1?"yellow":"red");
-  setKpiCardState("cardM2Demolidos",m2D>=10?"green":m2D>=1?"yellow":"red");
+  setKpiCardState("cardM3Retiro",m3Ret>=30?"green":m3Ret>=10?"yellow":"red");
+  setKpiCardState("cardM2Hilteo",m2Hil>=20?"green":m2Hil>=5?"yellow":"red");
+  setKpiCardState("cardMarcos",marcos>=6?"green":marcos>=2?"yellow":"red");
+  setKpiCardState("cardM2Acunadura",m2Acu>=20?"green":m2Acu>=5?"yellow":"red");
   setKpiCardState("cardM3Proyectados",m3P>=10?"green":m3P>=1?"yellow":"red");
   setKpiCardState("cardM3Bombeados",m3B>=10?"green":m3B>=1?"yellow":"red");
 
-  var mM3=parseFloat((form.elements.namedItem("metaM3Scoop")||{}).value||"0");
-  var mM2=parseFloat((form.elements.namedItem("metaM2Malla")||{}).value||"0");
-  var mMJ=parseFloat((form.elements.namedItem("metaMetrosJumbo")||{}).value||"0");
-  var mMP=parseFloat((form.elements.namedItem("metaPernosExpansor")||{}).value||"0");
-  var p1=pct(m3S,mM3),p2=pct(m2M,mM2),p3=pct(mJ,mMJ),p4=pct(pE,mMP);
+  var mM3=parseFloat((form.elements.namedItem("metaM3Retiro")||{}).value||"0");
+  var mHil=parseFloat((form.elements.namedItem("metaM2Hilteo")||{}).value||"0");
+  var mMar=parseFloat((form.elements.namedItem("metaMarcos")||{}).value||"0");
+  var mShot=parseFloat((form.elements.namedItem("metaM3Proyectados")||{}).value||"0");
+  var p1=pct(m3Ret,mM3),p2=pct(m2Hil,mHil),p3=pct(marcos,mMar),p4=pct(m3P,mShot);
   var vals=[p1,p2,p3,p4].filter(function(v){return v>0;});
   var cumpl=vals.length?vals.reduce(function(a,b){return a+b;},0)/vals.length:0;
   var totEq=eqOp+eqFS;var disp=totEq?(eqOp/totEq)*100:0;
   var artC=artCount>0?100:0;
   var issues=collectValidationIssues();
   var riesgo="Bajo",rd="Sin alertas";
-  if(issues.length>=4||eqFS>=3){riesgo="Alto";rd="Revisar validación";}
-  else if(issues.length>=1||eqFS>=2){riesgo="Medio";rd="Existen observaciones";}
-
+  if(issues.length>=3||eqFS>=3){riesgo="Alto";rd="Revisar validación y continuidad operacional";}
+  else if(issues.length>=1||eqFS>=2){riesgo="Medio";rd="Existen observaciones que afectan la gestión";}
   $("dashCumplimiento").textContent=cumpl.toFixed(1)+"%";
-  $("dashDetalleProduccion").textContent="Removido "+p1.toFixed(0)+"% | Malla "+p2.toFixed(0)+"% | Jumbo "+p3.toFixed(0)+"%";
+  $("dashDetalleProduccion").textContent="Retiro "+p1.toFixed(0)+"% | Hilteo "+p2.toFixed(0)+"% | Marcos "+p3.toFixed(0)+"%";
   $("dashDisponibilidad").textContent=disp.toFixed(1)+"%";
   $("dashDetalleEquipos").textContent=eqOp+" operativos / "+eqFS+" F/S";
   $("dashART").textContent=artC.toFixed(0)+"%";
@@ -776,8 +920,8 @@ function updateKPIAndDashboard(){
   $("dashRiesgo").textContent=riesgo;$("dashDetalleRiesgo").textContent=rd;
 
   var alerts=[];
-  if(eqFS>=3)alerts.push("3+ equipos F/S.");
-  if(disp<70&&totEq>0)alerts.push("Disponibilidad < 70%.");
+  if(eqFS>=3)alerts.push("3 o más equipos F/S.");
+  if(disp<70&&totEq>0)alerts.push("Disponibilidad menor a 70%.");
   if(cumpl<70&&vals.length>0)alerts.push("Producción bajo meta.");
   if(!artCount)alerts.push("Sin ART registrados.");
   $("alertBox").textContent=alerts.length?alerts.join(" "):"Sin alertas críticas.";
@@ -788,10 +932,11 @@ function updateKPIAndDashboard(){
 
 /* === SUMMARY === */
 function updateSummary(d){
+  var workers=0; containers.workers.querySelectorAll('input[name$="_nombre"]').forEach(function(i){ if(i.value.trim()) workers++; });
   summaryBox.textContent=["Folio: "+buildFolio(),"Mina: "+(d.mina||"-"),"Fecha: "+(d.fecha||"-"),"Turno: "+(d.turno||"-"),
     "Grupo: "+(d.grupo||"-"),"Capataz: "+(d.capataz||"-"),"Postura: "+(d.postura||"-"),
-    "Dotación: "+(d.dotacion||"-"),"Sismicidad: "+(d.sismicidad||"-"),"CNC: "+(d.cnc||"-"),
-    "Obs: "+(d.observacionesGenerales||"-")].join("\n");
+    "Postura alternativa: "+(d.posturaAlternativa||"-"),"Dotación registrada: "+workers,
+    "Sismicidad: "+(d.sismicidad||"-"),"CNC: "+(d.cnc||"-"),"Obs: "+(d.observacionesGenerales||"-")].join("\n");
 }
 
 /* === GOOGLE SHEETS SYNC === */
@@ -800,7 +945,7 @@ function buildSheetsPayload(){
   var d=getFormData(false);
   var operaciones={folio:buildFolio(),fecha:d.fecha||"",turno:d.turno||"",grupo:d.grupo||"",mina:d.mina||"",capataz:d.capataz||"",
     jefeTurno:d.jefeTurno||"",jefeTerreno:d.jefeTerreno||"",jefeOperaciones:d.jefeOperaciones||"",
-    dotacion:d.dotacion||"",postura:d.postura||"",sismicidad:d.sismicidad||"",cnc:d.cnc||"",
+    dotacion_registrada:containers.workers.querySelectorAll('input[name$="_nombre"]').length,postura:d.postura||"",postura_alternativa:d.posturaAlternativa||"",sismicidad:d.sismicidad||"",cnc:d.cnc||"",
     equipos_operativos:$("kpiEquiposOperativos").textContent,equipos_fs:$("kpiEquiposFS").textContent,
     art_count:$("kpiART").textContent,supervisorAprobador:d.supervisorAprobador||"",cierreAprobado:d.cierreAprobado||"",horaCierre:d.horaCierre||""};
   var logistica={folio:buildFolio(),fecha:d.fecha||"",mina:d.mina||"",capataz:d.capataz||""};
@@ -808,7 +953,7 @@ function buildSheetsPayload(){
     logistica[name+"_estatus"]=d[prefix+"estatus"]||"";logistica[name+"_cantidad"]=d[prefix+"cantidad"]||"";
   });
   var kpi={folio:buildFolio(),fecha:d.fecha||"",turno:d.turno||"",mina:d.mina||"",capataz:d.capataz||"",
-    m3_removidos:$("kpiM3Scoop").textContent,m2_malla:$("kpiM2Malla").textContent,metros_jumbo:$("kpiMetrosJumbo").textContent,
+    m3_retiro:$("kpiM3Retiro").textContent,m2_hilteo:$("kpiM2Hilteo").textContent,marcos:$("kpiMarcos").textContent,m2_acunadura:$("kpiM2Acunadura").textContent,m3_proyectados:$("kpiM3Proyectados").textContent,m3_bombeados:$("kpiM3Bombeados").textContent,
     cumplimiento:$("dashCumplimiento").textContent,disponibilidad:$("dashDisponibilidad").textContent,riesgo:$("dashRiesgo").textContent};
   return{operaciones:operaciones,logistica:logistica,kpi:kpi};
 }
@@ -836,7 +981,7 @@ function downloadBlob(c,f,t){var b=new Blob([c],{type:t}),a=document.createEleme
 function exportFlatCsv(){
   var d=getFormData(false);
   var r={folio:buildFolio(),fecha:d.fecha||"",turno:d.turno||"",mina:d.mina||"",capataz:d.capataz||"",
-    m3_removidos:$("kpiM3Scoop").textContent,m2_malla:$("kpiM2Malla").textContent,metros_jumbo:$("kpiMetrosJumbo").textContent};
+    m3_retiro:$("kpiM3Retiro").textContent,m2_hilteo:$("kpiM2Hilteo").textContent,marcos:$("kpiMarcos").textContent,m2_acunadura:$("kpiM2Acunadura").textContent};
   var h=Object.keys(r),v=h.map(function(k){return'"'+String(r[k]).replace(/"/g,'""')+'"';});
   downloadBlob(h.join(",")+"\n"+v.join(","),buildFolio()+"_powerbi.csv","text/csv;charset=utf-8;");
 }
@@ -859,7 +1004,7 @@ function saveToHistory(){
   var h=getHistory();
   h.unshift({folio:buildFolio(),fecha:(form.elements.namedItem("fecha")||{}).value||"",turno:(form.elements.namedItem("turno")||{}).value||"",
     mina:(form.elements.namedItem("mina")||{}).value||"",capataz:(form.elements.namedItem("capataz")||{}).value||"",
-    kpi_m3:$("kpiM3Scoop").textContent,kpi_m2:$("kpiM2Malla").textContent,kpi_metros:$("kpiMetrosJumbo").textContent,
+    kpi_m3:$("kpiM3Retiro").textContent,kpi_m2:$("kpiM2Hilteo").textContent,kpi_marcos:$("kpiMarcos").textContent,
     equipos_fs:$("kpiEquiposFS").textContent,disponibilidad:$("dashDisponibilidad").textContent.replace("%",""),
     saved_at:new Date().toLocaleString("es-CL")});
   localStorage.setItem(HISTORY_KEY,JSON.stringify(h.slice(0,50)));renderHistory();renderConsolidated();
@@ -868,17 +1013,17 @@ function clearHistory(){if(!confirm("¿Eliminar historial?"))return;localStorage
 function renderHistory(){
   var list=$("historyList"),h=getHistory();
   if(!h.length){list.textContent="Sin registros.";return;}
-  list.innerHTML=h.map(function(r){return'<div class="history-item"><strong>'+r.folio+'</strong><br>'+r.fecha+' | '+r.turno+' | '+r.mina+'<br>Capataz: '+r.capataz+'<br>m3: '+r.kpi_m3+' | m2: '+r.kpi_m2+' | metros: '+r.kpi_metros+'<br>'+r.saved_at+'</div>';}).join("");
+  list.innerHTML=h.map(function(r){return'<div class="history-item"><strong>'+r.folio+'</strong><br>'+r.fecha+' | '+r.turno+' | '+r.mina+'<br>Capataz: '+r.capataz+'<br>m3 retiro: '+r.kpi_m3+' | m2 hilteo: '+r.kpi_m2+' | marcos: '+(r.kpi_marcos||'0')+'<br>'+r.saved_at+'</div>';}).join("");
 }
 function renderConsolidated(){
   var data=getFilteredHistory(),total=data.length;
   var sum=function(k){return data.reduce(function(a,r){return a+parseFloat(r[k]||"0");},0);};
-  var m3=sum("kpi_m3"),m2=sum("kpi_m2"),mt=sum("kpi_metros");
+  var m3=sum("kpi_m3"),m2=sum("kpi_m2"),mt=sum("kpi_marcos");
   var disp=total?data.reduce(function(a,r){return a+parseFloat(r.disponibilidad||"0");},0)/total:0;
   var fs=total?data.reduce(function(a,r){return a+parseFloat(r.equipos_fs||"0");},0)/total:0;
   $("consInformes").textContent=total;$("consM3").textContent=m3.toFixed(2);$("consM2").textContent=m2.toFixed(2);
-  $("consMetros").textContent=mt.toFixed(2);$("consDisp").textContent=disp.toFixed(1)+"%";$("consFS").textContent=fs.toFixed(2);
-  var byCap={},byMina={};data.forEach(function(r){var c=r.capataz||"-",mi=r.mina||"-",p=parseFloat(r.kpi_m3||"0")+parseFloat(r.kpi_metros||"0");byCap[c]=(byCap[c]||0)+p;byMina[mi]=(byMina[mi]||0)+p;});
+  $("consMetros").textContent=mt.toFixed(0);$("consDisp").textContent=disp.toFixed(1)+"%";$("consFS").textContent=fs.toFixed(2);
+  var byCap={},byMina={};data.forEach(function(r){var c=r.capataz||"-",mi=r.mina||"-",p=parseFloat(r.kpi_m3||"0")+parseFloat(r.kpi_marcos||"0");byCap[c]=(byCap[c]||0)+p;byMina[mi]=(byMina[mi]||0)+p;});
   var tc=Object.entries(byCap).sort(function(a,b){return b[1]-a[1];})[0];
   var tm=Object.entries(byMina).sort(function(a,b){return b[1]-a[1];})[0];
   $("consTopCapataz").textContent=tc?tc[0]:"-";$("consTopDetalle").textContent=tc?"Prod: "+tc[1].toFixed(2):"Sin datos";
@@ -896,14 +1041,48 @@ function exportConsolidatedCsv(){
 
 /* === SAVE/LOAD === */
 function saveData(){var d=getFormData(true);if(!validateReportSize(d))return;localStorage.setItem(STORAGE_KEY,JSON.stringify(d));saveStatus.textContent="Guardado offline";hasUnsavedChanges=false;recomputeAll();}
+function ensureDynamicEntriesFromData(d){
+  function ensure(prefix, counterKey, addFn){
+    var max = 0;
+    Object.keys(d).forEach(function(k){
+      var m = k.match(new RegExp("^"+prefix+"_(\\d+)_"));
+      if(m) max = Math.max(max, parseInt(m[1],10));
+    });
+    while(counters[counterKey] < max) addFn();
+  }
+  ensure("worker","worker",addWorker);
+  ensure("activity","activity",addActivity);
+  ensure("intInt","interferenceInternal",function(){ addInterference("internal"); });
+  ensure("intExt","interferenceExternal",function(){ addInterference("external"); });
+
+  var materialCounts = {};
+  Object.keys(d).forEach(function(k){
+    var m = k.match(/^mat_(\d+)_\d+_/);
+    if(m){
+      var idx = parseInt(m[1],10);
+      materialCounts[idx] = materialCounts[idx] || 0;
+    }
+  });
+  Object.keys(materialCounts).forEach(function(idxStr){
+    var idx = parseInt(idxStr,10);
+    var prefix = "mat_" + idx + "_";
+    var count = 0;
+    Object.keys(d).forEach(function(k){ if(k.indexOf(prefix) === 0 && /_estatus$/.test(k)) count++; });
+    if(count > 1 && MATERIAL_TYPES[idx]){
+      for(var i=1;i<count;i++) addMaterial(MATERIAL_TYPES[idx][0], MATERIAL_TYPES[idx][1], idx);
+    }
+  });
+}
 function loadData(){
   var raw=localStorage.getItem(STORAGE_KEY);if(!raw){recomputeAll();return;}
   try{
     var d=JSON.parse(raw);
+    ensureDynamicEntriesFromData(d);
     Object.keys(d).forEach(function(k){var f=form.elements.namedItem(k);if(f&&typeof d[k]==="string")f.value=d[k];});
     Object.keys(d).forEach(function(k){
       if(k.indexOf("preview_")===0&&d[k]&&d[k].image){var p=$(k);if(p){p.innerHTML='<img src="'+d[k].image+'" alt="evidencia"><small>'+d[k].timestamp+'</small>';p.dataset.image=d[k].image;p.dataset.timestamp=d[k].timestamp;}}
     });
+    document.querySelectorAll('.activity-card').forEach(function(card){ configureActivityByType(card); recalcActivityCard(card); });
     saveStatus.textContent="Datos recuperados";
     if (maestrosData) applyMaestrosToForm();
   }catch(e){saveStatus.textContent="Error carga";}
